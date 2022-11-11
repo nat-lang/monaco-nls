@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import express from "express";
 
-const fragmentDir = path.join('/', 'app', 'fragments');
+const fragmentDir = path.join('/', 'Users', 'alexandershilen', 'natlang', 'fragments');
 
 process.on('uncaughtException', function (err: any) {
   console.error('Uncaught Exception: ', err.toString());
@@ -26,9 +26,9 @@ export function launch(socket: rpc.IWebSocket) {
   const socketConnection = server.createConnection(reader, writer, () => socket.dispose());
   console.log(process.env)
   const serverConnection = server.createServerProcess(
-    'haskell',
-    'haskell-language-server-8.10.7',
-    ['--lsp', '--debug', '--cwd=/app/fragments'],
+    'nat',
+    'nls',
+    ['--lsp', '--debug', `--cwd=${fragmentDir.toString()}`],
     { env: process.env }
   );
 

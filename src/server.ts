@@ -1,16 +1,17 @@
-import * as ws from "ws";
+import { WebSocketServer } from 'ws';
 import * as http from "http";
 import * as url from "url";
 import * as net from "net";
-import * as rpc from "@codingame/monaco-jsonrpc";
-import * as server from "@codingame/monaco-jsonrpc/lib/server";
+import { IWebSocket, WebSocketMessageReader, WebSocketMessageWriter } from 'vscode-ws-jsonrpc';
+import * as server from 'vscode-ws-jsonrpc/server';
 import * as lsp from "vscode-languageserver";
 import cors from 'cors';
 import fs from "fs";
 import path from "path";
 import express from "express";
+import { Message } from 'vscode-languageserver';
 
-const fragmentDir = path.join('/', 'Users', 'alexandershilen', 'natlang', 'fragments');
+const moduleDir = path.join('/', 'Users', 'alexandershilen', 'natlang', 'modules');
 
 process.on('uncaughtException', function (err: any) {
   console.error('Uncaught Exception: ', err.toString());
@@ -19,28 +20,31 @@ process.on('uncaughtException', function (err: any) {
   }
 });
 
-export function launch(socket: rpc.IWebSocket) {
-  const reader = new rpc.WebSocketMessageReader(socket);
-  const writer = new rpc.WebSocketMessageWriter(socket);
+export function launch(socket: IWebSocket) {
+  const reader = new WebSocketMessageReader(socket);
+  const writer = new WebSocketMessageWriter(socket);
 
   const socketConnection = server.createConnection(reader, writer, () => socket.dispose());
   console.log(process.env)
   const serverConnection = server.createServerProcess(
     'nat',
     'nls',
-    ['--lsp', '--debug', `--cwd=${fragmentDir.toString()}`],
+    ['--lsp', '--debug', `--cwd=${moduleDir.toString()}`],
     { env: process.env }
   );
 
-  server.forward(socketConnection, serverConnection, message => {
-    console.log(message);
+  if (!serverConnection) return;
 
-    if (rpc.isRequestMessage(message)) {
+  server.forward(socketConnection, serverConnection, message => {
+    const isReq = Message.isRequest(message)
+
+    if (isReq) {
       if (message.method === lsp.InitializeRequest.type.method) {
         const initializeParams = message.params as lsp.InitializeParams;
         initializeParams.processId = process.pid;
       }
     }
+
     return message;
   });
 }
@@ -55,16 +59,16 @@ const httpServer = app.listen(3003);
 
 // routes
 app.get('/:filename', (req, res) => {
-  const buffer = fs.readFileSync(path.join(fragmentDir, req.params.filename));
+  const buffer = fs.readFileSync(path.join(moduleDir, req.params.filename));
   res.json(buffer.toString());
 });
 app.post('/:filename', (req, res) => {
-  fs.writeFileSync(path.join(fragmentDir, req.params.filename), req.body.content);
-  res.send('POST request to the homepage');
+  fs.writeFileSync(path.join(moduleDir, req.params.filename), req.body.content);
+  res.send('Ok');
 });
 
 // create the web socket
-const wss = new ws.Server({
+const wss = new WebSocketServer({
   noServer: true,
   perMessageDeflate: false
 });
@@ -74,7 +78,7 @@ httpServer.on('upgrade', (request: http.IncomingMessage, socket: net.Socket, hea
 
   if (pathname === '/') {
     wss.handleUpgrade(request, socket, head, webSocket => {
-      const socket: rpc.IWebSocket = {
+      const socket: IWebSocket = {
         send: content => webSocket.send(content, error => {
           if (error) throw error;
         }),

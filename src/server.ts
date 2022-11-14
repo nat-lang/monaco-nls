@@ -12,6 +12,7 @@ import express from "express";
 import { Message } from 'vscode-languageserver';
 
 const moduleDir = path.join('/', 'Users', 'alexandershilen', 'natlang', 'modules');
+const qualifyFile = (file: string) => path.join(moduleDir, file);
 
 process.on('uncaughtException', function (err: any) {
   console.error('Uncaught Exception: ', err.toString());
@@ -59,11 +60,18 @@ const httpServer = app.listen(3003);
 
 // routes
 app.get('/:filename', (req, res) => {
-  const buffer = fs.readFileSync(path.join(moduleDir, req.params.filename));
+  const file = qualifyFile(req.params.filename);
+  const buffer = fs.readFileSync(file);
   res.json(buffer.toString());
 });
 app.post('/:filename', (req, res) => {
-  fs.writeFileSync(path.join(moduleDir, req.params.filename), req.body.content);
+  const file = qualifyFile(req.params.filename);
+  fs.writeFileSync(file, req.body.content);
+  res.send('Ok');
+});
+app.delete('/:filename', (req, res) => {
+  const file = qualifyFile(req.params.filename);
+  fs.unlinkSync(file);
   res.send('Ok');
 });
 

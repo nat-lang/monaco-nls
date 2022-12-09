@@ -26,7 +26,6 @@ export function launch(socket: IWebSocket) {
   const writer = new WebSocketMessageWriter(socket);
 
   const socketConnection = server.createConnection(reader, writer, () => socket.dispose());
-  console.log(process.env)
   const serverConnection = server.createServerProcess(
     'nat',
     'nls',
@@ -53,6 +52,7 @@ export function launch(socket: IWebSocket) {
 // init/plugins
 const app = express();
 app.use(cors());
+app.use('/static', express.static(moduleDir));
 app.use(express.json());
 
 // start the server
@@ -61,7 +61,10 @@ const httpServer = app.listen(3003);
 // routes
 app.get('/:filename', (req, res) => {
   const file = qualifyFile(req.params.filename);
-  const buffer = fs.readFileSync(file);
+  // const ext = path.extname(file);
+  
+  let buffer = fs.readFileSync(file);
+
   res.json(buffer.toString());
 });
 app.post('/:filename', (req, res) => {

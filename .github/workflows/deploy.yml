@@ -17,6 +17,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-2
+
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
@@ -24,3 +25,11 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.ECR_REPOSITORY }}/node-nls:latest
+
+      - name: Pull
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.INSTANCE_ADDRESS }}
+          username: ${{ secrets.INSTANCE_USERNAME }}
+          key: ${{ secrets.INSTANCE_SSH_KEY }}
+          script: docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) ${{ secrets.ECR_REPOSITORY }} && docker run --env-file .env -p '3003:80' -d ${{ secrets.ECR_REPOSITORY }}/node-nls:latest npm run start

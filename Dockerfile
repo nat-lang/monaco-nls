@@ -1,4 +1,4 @@
-FROM 721127801956.dkr.ecr.us-east-2.amazonaws.com/www-nls:latest as nls
+FROM 721127801956.dkr.ecr.us-east-2.amazonaws.com/nls:latest as nls
 FROM node:16
 
 COPY --from=nls /usr/local/bin/nls /usr/local/bin/nls

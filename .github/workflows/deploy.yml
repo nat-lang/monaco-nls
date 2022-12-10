@@ -23,4 +23,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.ECR_REPOSITORY }}/${{ github.event.repository.name }}:latest
+          tags: ${{ secrets.ECR_REPOSITORY }}/node-nls:latest

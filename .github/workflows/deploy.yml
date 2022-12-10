@@ -32,4 +32,4 @@ jobs:
           host: ${{ secrets.INSTANCE_ADDRESS }}
           username: ${{ secrets.INSTANCE_USERNAME }}
           key: ${{ secrets.INSTANCE_SSH_KEY }}
-          script: docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) ${{ secrets.ECR_REPOSITORY }} && docker run -p '3003:80' -d ${{ secrets.ECR_REPOSITORY }}/node-nls:latest npm run start
+          script: docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) ${{ secrets.ECR_REPOSITORY }} && docker run --rm -p '3003:80' -d ${{ secrets.ECR_REPOSITORY }}/node-nls:latest npm run start

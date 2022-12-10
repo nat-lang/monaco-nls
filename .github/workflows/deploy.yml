@@ -34,6 +34,6 @@ jobs:
           key: ${{ secrets.INSTANCE_SSH_KEY }}
           script: |
             docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) ${{ secrets.ECR_REPOSITORY }}
-            docker stop node-nls
-            docker rm node-nls
+            docker stop node-nls || true
+            docker rm node-nls || true
             docker run --name node-nls --rm -p '80:3003' -d ${{ secrets.ECR_REPOSITORY }}/node-nls:latest npm run start
